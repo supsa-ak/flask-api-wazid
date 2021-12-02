@@ -1,4 +1,3 @@
-import flask
 from app import application
 from app.apis import *
 

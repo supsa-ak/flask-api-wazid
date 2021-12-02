@@ -22,4 +22,4 @@ application.config.update({
 })
 docs = FlaskApiSpec(application)
 
-from app.models import 
+# from app.models import 
