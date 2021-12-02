@@ -15,8 +15,7 @@ class Customer(db.Model):
     password = db.Column(db.String)
     level = db.Column(db.Integer)
 
-    def __init__(self, cust_id, name, username, password, level):
-    	self.cust_id = cust_id
+    def __init__(self, name, username, password, level):
     	self.name = name
     	self.username = username
     	self.password = password
