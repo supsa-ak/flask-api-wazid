@@ -26,8 +26,12 @@ class Login(Resource):
                         session['username'] = uname
                         # print(session)
                         return {"message": 'Successfully Logged in as '+ uname}, 201
+                    else:
+                        return  {"message": 'Incorrect Username or Password'}, 404
+                else:
+                    return  {"message": 'Incorrect Username or Password'}, 404
             except:
-                    return  {"message": 'Incorrect Username or Password'}, 200
+                    return  {"message": 'Incorrect Username or Password'}, 404
 
 class Logout(Resource):    
     def get(self):      
@@ -127,17 +131,18 @@ class Place_order(Resource):
         return {"message": 'Order Created Successfully'}, 200
 
 class Get_all_orders_by_customer(Resource):
-    def get(self):
+    def post(self):
         if session['username']:
             pass 
         else:
             return {"message": 'Login Required'}
-        id = request.json['id']
+        id = request.json['cust_id']
         all_orders = db.session.query(Orders).filter_by(cust_id=id).all()
-        params = {}
+        params = []
         for i in all_orders:
-            params2 = {"order_id":i.order_id, "cust_id":i.cust_id, "total_amount":i.total_amount, "date":i.date}
-            params.update(params2)
+            d = str(i.date)
+            params2 = {"order_id":i.order_id, "cust_id":i.cust_id, "total_amount":i.total_amount, "date":d}
+            params.append(params2)
         return params, 200
 
 class Get_all_orders(Resource):
@@ -146,12 +151,17 @@ class Get_all_orders(Resource):
             pass 
         else:
             return {"message": 'Login Required'}
-            
+
         uname = session['username']
         cust_info = Customer.query.filter_by(username=uname).first()
         if cust_info.level == 2:
             all_orders = Orders.query.all()
-            return 'ok', 200
+            params = []
+            for i in all_orders:
+                d = str(i.date)
+                params2 = {"order_id":i.order_id, "cust_id":i.cust_id, "total_amount":i.total_amount, "date":d}
+                params.append(params2)
+            return params, 200
         else: 
             return {"message": 'Don\'t have required privileges'}, 404
 
@@ -194,4 +204,8 @@ api.add_resource(Get_all_orders, '/getallorders')
 #     "cust_id":1,
 #     "item_id":1,
 #     "quantity":2
+# }
+
+# {
+#     "cust_id": 3
 # }
