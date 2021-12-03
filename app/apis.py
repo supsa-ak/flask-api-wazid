@@ -20,20 +20,19 @@ class Login(Resource):
         if session:
             return {"message": 'Already Logged in as '+session['username']}, 200
         else:
-            uname = request.json['username']
-            pword = request.json['password']
-            print(Customer.query.filter_by(username=uname).first())
-            if Customer.query.filter_by(username=uname).first():
-                custom = Customer.query.filter_by(username=uname).first()
-                if Customer.query.get(custom.cust_id).password == pword:
-                    # print(session)
-                    session['username'] = uname
-                    # print(session)
-                else:
-                    return  {"message": 'Incorrect Password'}, 200
-                return {"message": 'Successfully Logged in as '+ uname}, 201
-            else:
-                return  {"message": 'Incorrect Username'}, 200
+            try:
+                uname = request.json['username']
+                pword = request.json['password']
+                print(Customer.query.filter_by(username=uname).first())
+                if Customer.query.filter_by(username=uname).first():
+                    custom = Customer.query.filter_by(username=uname).first()
+                    if Customer.query.get(custom.cust_id).password == pword:
+                        # print(session)
+                        session['username'] = uname
+                        # print(session)
+                        return {"message": 'Successfully Logged in as '+ uname}, 201
+            except:
+                    return  {"message": 'Incorrect Username or Password'}, 200
 
 class Logout(Resource):    
     def get(self):      
@@ -47,7 +46,7 @@ class Logout(Resource):
 class Add_vendor(Resource):
     def post(self):
         login_info()
-        data = Customer(cust_id=request.json['cust_id'], restaurant_name=request.json['restaurant_name'])
+        data = Vendor(cust_id=request.json['cust_id'], restaurant_name=request.json['restaurant_name'])
         db.session.add(data)
         db.session.commit()
         return {"message": 'Vendor created with restaurant name '+request.json['restaurant_name']}, 201
