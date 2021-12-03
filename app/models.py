@@ -28,7 +28,6 @@ class Vendor(db.Model):
     restaurant_name = db.Column(db.String)
 
     def __init__(self, vendor_id, cust_id, restaurant_name):
-    	self.vendor_id = vendor_id
     	self.cust_id = cust_id
     	self.restaurant_name = restaurant_name
 
