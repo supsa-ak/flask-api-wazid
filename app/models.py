@@ -52,13 +52,11 @@ class Orders(db.Model):
     order_id = db.Column(db.Integer, primary_key=True)
     cust_id = db.Column(db.Integer, db.ForeignKey("customer.cust_id"))
     total_amount = db.Column(db.Integer)
-    date = db.Column(db.Date)
+    date = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    def __init__(self, order_id, cust_id, total_amount, date):
-    	self.order_id = order_id
+    def __init__(self, cust_id, total_amount):
     	self.cust_id = cust_id
     	self.total_amount = total_amount
-    	self.date = date
 
 class OrderItems(db.Model):
     __tablename__ = 'orderItems'
@@ -68,8 +66,7 @@ class OrderItems(db.Model):
     quantity = db.Column(db.Integer)
     amount = db.Column(db.Integer)
 
-    def __init__(self, item_id, order_id, food_id, quantity, amount):
-    	self.item_id = item_id
+    def __init__(self, order_id, food_id, quantity, amount):
     	self.order_id = order_id
     	self.food_id = food_id
     	self.quantity = quantity

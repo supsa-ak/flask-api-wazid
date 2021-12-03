@@ -1,4 +1,5 @@
 # from werkzeug.wrappers import request
+from flask.helpers import total_seconds
 from sqlalchemy.sql.operators import exists
 from app import *
 
@@ -97,18 +98,40 @@ class Add_item(Resource):
 class Place_order(Resource):
     def post(self):
         if session['username']:
-            return {"message": 'Login Required'}
-        else:
             pass 
-        order = Orders(cust_id=request.json['cust_id'], item_id=request.json['item_id'], quantity=request.json['quantity'])
+        else:
+            return {"message": 'Login Required'}
+     
+        cust_id=request.json['cust_id']
+        f_id=request.json['item_id']
+        quantity=request.json['quantity']
 
+        item = Food.query.filter_by(food_id=f_id).first()
+        if item.available_quantity >= quantity:
+            pass
+        else:
+            return  {"message": 'quantity not available'}, 404
+        total = quantity * item.unit_price
+        item.available_quantity = item.available_quantity - quantity
+
+        order = Orders(cust_id=cust_id, total_amount=total)
+        db.session.add(order)
+        db.session.commit()
+
+        last_item = Orders.query.order_by(Orders.order_id.desc()).first()
+
+        orderitems = OrderItems(order_id=last_item.order_id, food_id=f_id, quantity=quantity, amount=total)
+        db.session.add(orderitems)
+        db.session.commit()
+        
+        return {"message": 'Order Created Successfully'}, 200
 
 class Get_all_orders_by_customer(Resource):
     def get(self):
         if session['username']:
-            return {"message": 'Login Required'}
-        else:
             pass 
+        else:
+            return {"message": 'Login Required'}
         id = request.json['id']
         all_orders = db.session.query(Orders).filter_by(cust_id=id).all()
         params = {}
@@ -120,9 +143,10 @@ class Get_all_orders_by_customer(Resource):
 class Get_all_orders(Resource):
     def get(self):
         if session['username']:
-            return {"message": 'Login Required'}
-        else:
             pass 
+        else:
+            return {"message": 'Login Required'}
+            
         uname = session['username']
         cust_info = Customer.query.filter_by(username=uname).first()
         if cust_info.level == 2:
@@ -164,4 +188,10 @@ api.add_resource(Get_all_orders, '/getallorders')
 #     "available_quantity": 5,
 #     "calories_per_gm": 22,
 #     "unit_price": 20
+# }
+
+# {
+#     "cust_id":1,
+#     "item_id":1,
+#     "quantity":2
 # }
