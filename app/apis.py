@@ -1,11 +1,6 @@
 # from werkzeug.wrappers import request
+from sqlalchemy.sql.operators import exists
 from app import *
-# session = None
-def login_info():
-    if len(session) == 0:
-        return {"message": 'Login Required'}
-    else:
-        pass 
 
 class Add_customer(Resource):    
     def post(self):
@@ -17,13 +12,12 @@ class Add_customer(Resource):
 
 class Login(Resource):    
     def post(self):
-        if session:
-            return {"message": 'Already Logged in as '+session['username']}, 200
+        if session['username']:
+            return {"message": 'Already Logged in as '+ session['username']}, 200
         else:
             try:
                 uname = request.json['username']
                 pword = request.json['password']
-                print(Customer.query.filter_by(username=uname).first())
                 if Customer.query.filter_by(username=uname).first():
                     custom = Customer.query.filter_by(username=uname).first()
                     if Customer.query.get(custom.cust_id).password == pword:
@@ -36,16 +30,22 @@ class Login(Resource):
 
 class Logout(Resource):    
     def get(self):      
-        session.pop('username',None)
+        session['username'] = None
         print('thisis ', session)
         return {"message":"User Logged Out"}
     def post(self):      
-        session.pop('username',None)
+        session['username'] = None
+        # session.pop('username',None)
         return {"message":"User Logged Out"}
 
 class Add_vendor(Resource):
     def post(self):
-        login_info()
+        # print(session)
+        # print(session['username'])
+        if session['username']:
+            return {"message": 'Login Required'}
+        else:
+            pass 
         data = Vendor(cust_id=request.json['cust_id'], restaurant_name=request.json['restaurant_name'])
         db.session.add(data)
         db.session.commit()
@@ -53,24 +53,37 @@ class Add_vendor(Resource):
 
 class Get_all_vendors(Resource):
     def get(self):
-        login_info()
+        if session['username']:
+            pass
+        else:
+            return {"message": 'Login Required'}
+
         vendors = Vendor.query.all()
-        params = {}
-        params2 = {}
+        params = []
+        # params2 = []
+        m = 0
         for i in vendors:
+            print(m)
             id = i.vendor_id
-            vendor_info = {"vendor_id":i.vendor_id, "cust_id":i.cust_id, "restaurant_name":i.restaurant_name, "data":None}
-            params.update(vendor_info)
+            vendor_info = {"vendor_id":i.vendor_id, "cust_id":i.cust_id, "restaurant_name":i.restaurant_name, "data":[]}
+            params.append(vendor_info)
+
             res = db.session.query(Food).filter_by(vendor_id=id).all()
             for j in res:
                 dict = {"food_id":j.food_id, "vendor_id":j.vendor_id, "dish_name":j.dish_name, "calories_per_gm":j.calories_per_gm, "available_quantity":j.available_quantity, "unit_price":j.unit_price}
-                params2.update(dict)
-            params["data"] = params2
+                print(dict)
+                params[m]['data'].append(dict)
+            # params["data"] = params2
+            m = m+1
+            
         return params, 200
 
 class Add_item(Resource):
     def post(self):
-        login_info()
+        if session['username']:
+            return {"message": 'Login Required'}
+        else:
+            pass 
         username = session['username'] 
         cust_info = session.query.filter_by(username).first()
         if Vendor.query.filter_by(cust_id=cust_info.cust_id).first():
@@ -85,13 +98,19 @@ class Add_item(Resource):
 
 class Place_order(Resource):
     def post(self):
-        login_info()
+        if session['username']:
+            return {"message": 'Login Required'}
+        else:
+            pass 
         order = Orders(cust_id=request.json['cust_id'], item_id=request.json['item_id'], quantity=request.json['quantity'])
 
 
 class Get_all_orders_by_customer(Resource):
     def get(self):
-        login_info()
+        if session['username']:
+            return {"message": 'Login Required'}
+        else:
+            pass 
         id = request.json['id']
         all_orders = db.session.query(Orders).filter_by(cust_id=id).all()
         params = {}
@@ -102,6 +121,10 @@ class Get_all_orders_by_customer(Resource):
 
 class Get_all_orders(Resource):
     def get(self):
+        if session['username']:
+            return {"message": 'Login Required'}
+        else:
+            pass 
         uname = session['username']
         cust_info = Customer.query.filter_by(username=uname).first()
         if cust_info.level == 2:

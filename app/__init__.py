@@ -4,10 +4,14 @@ from apispec import APISpec
 from flask_restful import Resource, Api
 from apispec.ext.marshmallow import MarshmallowPlugin
 from flask_apispec.extension import FlaskApiSpec
-
+from flask_session import Session
+import json
 
 application = Flask(__name__)
 application.secret_key = 'flask-restraunt-1234'
+application.config["SESSION_PERMANENT"] = False
+application.config["SESSION_TYPE"] = "filesystem"
+Session(application)
 
 api = Api(application)  # Flask restful wraps Flask app around it.
 
