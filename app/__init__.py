@@ -24,7 +24,13 @@ application.config.update({
     ),
     'APISPEC_SWAGGER_URL': '/swagger/',  # URI to access API Doc JSON
     'APISPEC_SWAGGER_UI_URL': '/swagger-ui/'  # URI to access UI of API Doc
+    'API '
 })
 docs = FlaskApiSpec(application)
+
+@application.errorhandler(404) 
+def invalid_route(e): 
+    return  {"message": 'Incorrect Path, check your endpoint'}, 404
+
 
 from app.models import *

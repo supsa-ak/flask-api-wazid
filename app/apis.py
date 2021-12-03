@@ -1,15 +1,14 @@
-# from werkzeug.wrappers import request
-from flask.helpers import total_seconds
-from sqlalchemy.sql.operators import exists
 from app import *
 
 class Add_customer(Resource):    
     def post(self):
-        c = Customer(name=request.json['name'], username=request.json['username'], password=request.json['password'], level=request.json['level'])
-        db.session.add(c)
-        db.session.commit()
-        print(session)
-        return {"message": 'customer created with name '+request.json['name']}, 201
+        try:
+            c = Customer(name=request.json['name'], username=request.json['username'], password=request.json['password'], level=request.json['level'])
+            db.session.add(c)
+            db.session.commit()
+            return {"message": 'customer created with name '+request.json['name']}, 201
+        except:
+            return {'message': 'Something went wrong'}
 
 class Login(Resource):    
     def post(self):
@@ -22,9 +21,9 @@ class Login(Resource):
                 if Customer.query.filter_by(username=uname).first():
                     custom = Customer.query.filter_by(username=uname).first()
                     if Customer.query.get(custom.cust_id).password == pword:
-                        # print(session)
+                       
                         session['username'] = uname
-                        # print(session)
+                      
                         return {"message": 'Successfully Logged in as '+ uname}, 201
                     else:
                         return  {"message": 'Incorrect Username or Password'}, 404
@@ -36,25 +35,25 @@ class Login(Resource):
 class Logout(Resource):    
     def get(self):      
         session['username'] = None
-        print('thisis ', session)
         return {"message":"User Logged Out"}
     def post(self):      
         session['username'] = None
-        # session.pop('username',None)
         return {"message":"User Logged Out"}
 
 class Add_vendor(Resource):
     def post(self):
-        # print(session)
-        # print(session['username'])
-        if session['username']:
-            return {"message": 'Login Required'}
-        else:
-            pass 
-        data = Vendor(cust_id=request.json['cust_id'], restaurant_name=request.json['restaurant_name'])
-        db.session.add(data)
-        db.session.commit()
-        return {"message": 'Vendor created with restaurant name '+request.json['restaurant_name']}, 201
+        try:
+            if session['username']:
+                pass 
+            else:
+                return {"message": 'Login Required'}
+            data = Vendor(cust_id=request.json['cust_id'], restaurant_name=request.json['restaurant_name'])
+            db.session.add(data)
+            db.session.commit()
+            return {"message": 'Vendor created with restaurant name '+request.json['restaurant_name']}, 201
+        except:
+            return {'message': 'Something went wrong'}
+
 
 class Get_all_vendors(Resource):
     def get(self):
@@ -67,7 +66,6 @@ class Get_all_vendors(Resource):
         params = []
         m = 0
         for i in vendors:
-            print(m)
             id = i.vendor_id
             vendor_info = {"vendor_id":i.vendor_id, "cust_id":i.cust_id, "restaurant_name":i.restaurant_name, "data":[]}
             params.append(vendor_info)
@@ -75,7 +73,6 @@ class Get_all_vendors(Resource):
             res = db.session.query(Food).filter_by(vendor_id=id).all()
             for j in res:
                 dict = {"food_id":j.food_id, "vendor_id":j.vendor_id, "dish_name":j.dish_name, "calories_per_gm":j.calories_per_gm, "available_quantity":j.available_quantity, "unit_price":j.unit_price}
-                print(dict)
                 params[m]['data'].append(dict)
             m = m+1
             
@@ -105,30 +102,34 @@ class Place_order(Resource):
             pass 
         else:
             return {"message": 'Login Required'}
-     
-        cust_id=request.json['cust_id']
-        f_id=request.json['item_id']
-        quantity=request.json['quantity']
 
-        item = Food.query.filter_by(food_id=f_id).first()
-        if item.available_quantity >= quantity:
-            pass
-        else:
-            return  {"message": 'quantity not available'}, 404
-        total = quantity * item.unit_price
-        item.available_quantity = item.available_quantity - quantity
+        try:
+            cust_id=request.json['cust_id']
+            f_id=request.json['item_id']
+            quantity=request.json['quantity']
 
-        order = Orders(cust_id=cust_id, total_amount=total)
-        db.session.add(order)
-        db.session.commit()
+            item = Food.query.filter_by(food_id=f_id).first()
+            if item.available_quantity >= quantity:
+                pass
+            else:
+                return  {"message": 'quantity not available'}, 404
+            total = quantity * item.unit_price
+            item.available_quantity = item.available_quantity - quantity
 
-        last_item = Orders.query.order_by(Orders.order_id.desc()).first()
+            order = Orders(cust_id=cust_id, total_amount=total)
+            db.session.add(order)
+            db.session.commit()
 
-        orderitems = OrderItems(order_id=last_item.order_id, food_id=f_id, quantity=quantity, amount=total)
-        db.session.add(orderitems)
-        db.session.commit()
-        
-        return {"message": 'Order Created Successfully'}, 200
+            last_item = Orders.query.order_by(Orders.order_id.desc()).first()
+
+            orderitems = OrderItems(order_id=last_item.order_id, food_id=f_id, quantity=quantity, amount=total)
+            db.session.add(orderitems)
+            db.session.commit()
+            
+            return {"message": 'Order Created Successfully'}, 200
+        except:
+            return {'message': 'Something went wrong'}
+
 
 class Get_all_orders_by_customer(Resource):
     def post(self):
