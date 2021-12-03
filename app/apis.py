@@ -12,25 +12,27 @@ class Add_customer(Resource):
 
 class Login(Resource):    
     def post(self):
-        if session['username']:
-            return {"message": 'Already Logged in as '+ session['username']}, 200
-        else:
-            try:
-                uname = request.json['username']
-                pword = request.json['password']
-                if Customer.query.filter_by(username=uname).first():
-                    custom = Customer.query.filter_by(username=uname).first()
-                    if Customer.query.get(custom.cust_id).password == pword:
-                       
-                        session['username'] = uname
-                      
-                        return {"message": 'Successfully Logged in as '+ uname}, 201
-                    else:
-                        return  {"message": 'Incorrect Username or Password'}, 404
+        try:
+            if session['username']:
+                return {"message": 'Already Logged in as '+ session['username']}, 200
+        except:
+            pass
+        try:
+            uname = request.json['username']
+            pword = request.json['password']
+            if Customer.query.filter_by(username=uname).first():
+                custom = Customer.query.filter_by(username=uname).first()
+                if Customer.query.get(custom.cust_id).password == pword:
+                    
+                    session['username'] = uname
+                    
+                    return {"message": 'Successfully Logged in as '+ uname}, 201
                 else:
                     return  {"message": 'Incorrect Username or Password'}, 404
-            except:
-                    return  {"message": 'Incorrect Username or Password'}, 404
+            else:
+                return  {"message": 'Incorrect Username or Password'}, 404
+        except:
+                return  {"message": 'Incorrect Username or Password'}, 404
 
 class Logout(Resource):    
     def get(self):      
