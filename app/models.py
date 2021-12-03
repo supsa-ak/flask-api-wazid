@@ -40,8 +40,7 @@ class Food(db.Model):
     available_quantity = db.Column(db.Integer)
     unit_price = db.Column(db.Integer)
 
-    def __init__(self, food_id, vendor_id, dish_name, calories_per_gm, available_quantity, unit_price):
-    	self.food_id = food_id
+    def __init__(self, vendor_id, dish_name, calories_per_gm, available_quantity, unit_price):
     	self.vendor_id = vendor_id
     	self.dish_name = dish_name
     	self.calories_per_gm = calories_per_gm

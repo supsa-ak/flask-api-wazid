@@ -60,7 +60,6 @@ class Get_all_vendors(Resource):
 
         vendors = Vendor.query.all()
         params = []
-        # params2 = []
         m = 0
         for i in vendors:
             print(m)
@@ -73,7 +72,6 @@ class Get_all_vendors(Resource):
                 dict = {"food_id":j.food_id, "vendor_id":j.vendor_id, "dish_name":j.dish_name, "calories_per_gm":j.calories_per_gm, "available_quantity":j.available_quantity, "unit_price":j.unit_price}
                 print(dict)
                 params[m]['data'].append(dict)
-            # params["data"] = params2
             m = m+1
             
         return params, 200
@@ -81,14 +79,14 @@ class Get_all_vendors(Resource):
 class Add_item(Resource):
     def post(self):
         if session['username']:
-            return {"message": 'Login Required'}
-        else:
             pass 
-        username = session['username'] 
-        cust_info = session.query.filter_by(username).first()
+        else:
+            return {"message": 'Login Required'}
+        uname = session['username'] 
+        cust_info = Customer.query.filter_by(username=uname).first()
         if Vendor.query.filter_by(cust_id=cust_info.cust_id).first():
-            food = Food(food_id=request.json['food_id'], vendor_id=request.json['vendor_id'], 
-                        dish_name=request.json['dish_name'], calories_per_gm=request.json['calories_per_gm'],
+            food = Food(vendor_id=request.json['vendor_id'], 
+                        dish_name=request.json['item_name'], calories_per_gm=request.json['calories_per_gm'],
                         available_quantity=request.json['available_quantity'],unit_price=request.json['unit_price'])
             db.session.add(food)
             db.session.commit()
@@ -158,4 +156,12 @@ api.add_resource(Get_all_orders, '/getallorders')
 # {
 #     "cust_id": 2
 #     "restaurant_name": 'dominos'
+# }
+
+# {
+#     "vendor_id": 1,
+#     "item_name": "burger",
+#     "available_quantity": 5,
+#     "calories_per_gm": 22,
+#     "unit_price": 20
 # }
